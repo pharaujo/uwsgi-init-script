@@ -1,0 +1,29 @@
+[[ -n $(find /etc/init.d/ -name 'uwsgi-*' -executable) ]] && \
+_uwsgi_init(){
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="start stop restart reload force-reload status"
+
+    if [[ $prev == "status" ]]; then
+        return 0
+    fi
+    if [[ $opts =~ $prev ]]; then
+        local version=$(basename ${COMP_WORDS[0]})
+        local configs=$(cd /etc/uwsgi/$version/sites-enabled/; ls -1 *)
+        COMPREPLY=( $(compgen -W "${configs}" -- ${cur}) )
+        return 0
+    fi
+    if [[ COMP_CWORD -gt 2 ]]; then
+        return 0
+    else
+        COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+        return 0
+    fi
+} && \
+for uwsgi_script in $(find /etc/init.d/ -name 'uwsgi-*' -executable); do
+complete -F _uwsgi_init $uwsgi_script
+done
+
