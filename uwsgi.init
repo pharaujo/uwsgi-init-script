@@ -66,7 +66,7 @@ do_pid_check()
 do_start()
 {
     for config in $ENABLED_CONFIGS; do
-        local PIDFILE=/var/run/$VERSION/$(basename $config).pid
+        local PIDFILE=$RUN/$(basename $config).pid
         if do_pid_check $PIDFILE; then
             sudo -u $OWNER -i $VERSION $config $DAEMON_OPTS --pidfile $PIDFILE
         else
@@ -78,7 +78,7 @@ do_start()
 send_sig()
 {
     for config in $ENABLED_CONFIGS; do
-        local PIDFILE=/var/run/$VERSION/$(basename $config).pid
+        local PIDFILE=$RUN/$(basename $config).pid
         set +e
         [[ -f $PIDFILE ]] && kill $1 $(cat $PIDFILE) > /dev/null 2>&1
         set -e
@@ -88,7 +88,7 @@ send_sig()
 wait_and_clean_pidfiles()
 {
     for config in $ENABLED_CONFIGS; do
-        local PIDFILE=/var/run/$VERSION/$(basename $config).pid
+        local PIDFILE=$RUN/$(basename $config).pid
         until do_pid_check $PIDFILE; do
             echo -n "";
         done
