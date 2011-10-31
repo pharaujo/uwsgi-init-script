@@ -15,9 +15,7 @@ VERSION=$(basename $0)
 
 if [[ "uwsgi uwsgi.init" =~ $VERSION ]]; then
     echo "Please use version-specific uwsgi!"
-    for i in $(find /etc/init.d/ -name 'uwsgi-2.?'); do
-        echo "  $i"
-    done
+    find /etc/init.d/ -name 'uwsgi-2.?' -exec echo "  {}" \;
     exit 1
 fi
 
