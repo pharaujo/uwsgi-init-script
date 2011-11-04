@@ -1,0 +1,55 @@
+[[ -n $(find /etc/init.d/ -name 'uwsgi-*' -executable) ]] && \
+_uwsgi_index()
+{
+    local index=0
+    for p in $@; do
+        [[ $p =~ "uwsgi-" ]] && return $index
+        let "index += 1"
+    done
+}
+_uwsgi_init(){
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    case "$(basename $prev)" in
+        uwsgi-*)
+            local opts
+            opts="start stop restart reload force-reload status enable disable"
+            COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+            return 0
+            ;;
+        all)
+            return 0
+            ;;
+    esac
+
+    local index version configs
+    index="$(_uwsgi_index ${COMP_WORDS[@]}; echo $?)"
+    version=$(basename ${COMP_WORDS[$index]})
+
+    case "${COMP_WORDS[$index + 1]}" in
+        enable)
+            local available enabled
+            available="/etc/uwsgi/$version/sites-available"
+            enabled="/etc/uwsgi/$version/sites-enabled"
+            configs=$(diff $available $enabled \
+                | grep $available \
+                | sed -re 's#.+: (.+)$#\1#')
+            ;;
+        disable)
+            configs=$(cd /etc/uwsgi/$version/sites-enabled/; ls -1 *.*)
+            ;;
+        *)
+            return 0
+    esac
+
+    [[ "enable disable" =~ $prev ]] && configs=$(echo "all"; echo "$configs")
+    COMPREPLY=( $(compgen -W "${configs}" -- ${cur}) )
+    return 0
+} && \
+for uwsgi_script in $(find /etc/init.d/ -name 'uwsgi-*' -executable); do
+complete -F _uwsgi_init $uwsgi_script
+done
+
