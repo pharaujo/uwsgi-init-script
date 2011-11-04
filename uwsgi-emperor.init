@@ -117,21 +117,32 @@ enable_configs()
     fi
 
     for c in $configs; do
-        [[ -f $AVAILABLE_CONFIGS_DIR/$c && ! -f $ENABLED_CONFIGS_DIR/$c ]] && \
-            ln -s $AVAILABLE_CONFIGS_DIR/$c $ENABLED_CONFIGS_DIR
+        echo -n "Enabling $c..."
+        [[ -f $ENABLED_CONFIGS_DIR/$c ]] && echo "Skipped" && continue
+        [[ -f $AVAILABLE_CONFIGS_DIR/$c ]] && \
+            ln -s $AVAILABLE_CONFIGS_DIR/$c $ENABLED_CONFIGS_DIR && \
+            echo "Done" && \
+            continue
+        echo "Error"
     done
 }
 
 disable_configs()
 {
+    local configs
     if [[ $# -eq 0 || ${1,,} = 'all' ]]; then
-        find $ENABLED_CONFIGS_DIR -type l -delete
+        configs=$(find $ENABLED_CONFIGS_DIR -type l -exec basename {} \;)
     else
-        for c in $@; do
-            local config_path="$ENABLED_CONFIGS_DIR/$c"
-            [[ -f $config_path ]] && rm $config_path
-        done
+        configs=$@
     fi
+
+    for c in $configs; do
+        local config_path="$ENABLED_CONFIGS_DIR/$c"
+        echo -n "Disabling $c..."
+        [[ ! -L $config_path ]] && echo "Skipped" && continue
+        [[ -f $config_path ]] && rm $config_path && echo "Done" && continue
+        echo "Error"
+    done
 }
 
 case "$OP" in
