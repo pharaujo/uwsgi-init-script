@@ -45,7 +45,22 @@ _uwsgi_init(){
             return 0
     esac
 
-    [[ "enable disable" =~ $prev ]] && configs=$(echo "all"; echo "$configs")
+    configs=( $(echo $configs | xargs echo) )
+    if [[ COMP_CWORD -gt $(($index + 2)) ]]; then
+        local selected=( $(echo "${COMP_WORDS[@]:$(($index+2))}") )
+        local tmp=()
+        for i in "${configs[@]}"; do
+            local skip=
+            for j in "${selected[@]}"; do
+                [[ $i == $j ]] && { skip=1; break; }
+            done
+            [[ -n $skip ]] || tmp+=( "$i" )
+        done
+        configs=( ${tmp[@]} )
+    fi
+
+    [[ "enable disable" =~ $prev ]] && configs+=( "all" )
+    configs=$(echo "${configs[@]}")
     COMPREPLY=( $(compgen -W "${configs}" -- ${cur}) )
     return 0
 } && \
