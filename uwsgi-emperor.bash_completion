@@ -4,7 +4,7 @@ _uwsgi_index()
     local index=0
     for p in $@; do
         [[ $p =~ "uwsgi-" ]] && return $index
-        let "index += 1"
+        ((index++))
     done
 }
 _uwsgi_init(){
